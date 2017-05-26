@@ -67,7 +67,7 @@ Langage C to ASM Compiler (Yacc/Lex) and Processor (VHDL)
   - Also works with generated outputs from the C compiler
 - RAM Memory: `init16.hex`
   - Implement this file if you want to input values in the RAM memory
-- Fréquences de fonctionnement: `92MHz` (A 100 MHz frequency is required, a requirement not satisfied in the actual state of the project)
+- Operating frequency: `92MHz` (A 100 MHz frequency is required, a requirement not satisfied in the actual state of the project)
 - Project configurations  
   - Family: Spartan6
   - Device: XC6SLX16
@@ -89,7 +89,7 @@ Langage C to ASM Compiler (Yacc/Lex) and Processor (VHDL)
 
 \*\* `ctlalea` Control data hazards is set when immediately reading after writing from the same register; Control of branching hazards is related to the Jump instruction.
 
-### Explcation des unités
+### Entity explanations
 - IP
   - Synchronous on rising_edge(CLK)
   - Instruction pointer works as a counter and point on the next instruction that is going to be executed
