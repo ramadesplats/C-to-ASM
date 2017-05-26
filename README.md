@@ -51,13 +51,13 @@ C Langage to ASM Compiler (Yacc/Lex) and Processor (VHDL)
 | Load | 0x07 | LOAD | Rbp | j | Ri | @[[Rbp]+j] ← [Ri] |
 | Save | 0x08 | STORE | Ri | Rbp | j | [Ri] → @[[Rbp]+j] |
 | Equal | 0x09 | EQU | Ri | Rj | Rk | [Ri] ← 1 if [Rj]=[Rk], else 0 |
-| Inferior | 0xA | INF | Ri | Rj | Rk | [Ri] ← 1 si [Rj]<[Rk], else 0 |
-| Inferior equal | 0xB | INFE | Ri | Rj | Rk | [Ri] ← 1 si [Rj]<=[Rk], else 0 |
-| Superior | 0xC | SUP | Ri | Rj | Rk | [Ri] ← 1 si [Rj]>[Rk], else 0 |
-| Superior equal | 0xD | SUPE | Ri | Rj | Rk | [Ri] ← 1 si [Rj]>=[Rk], else 0 |
+| Inferior | 0xA | INF | Ri | Rj | Rk | [Ri] ← 1 if [Rj]<[Rk], else 0 |
+| Inferior equal | 0xB | INFE | Ri | Rj | Rk | [Ri] ← 1 if [Rj]<=[Rk], else 0 |
+| Superior | 0xC | SUP | Ri | Rj | Rk | [Ri] ← 1 if [Rj]>[Rk], else 0 |
+| Superior equal | 0xD | SUPE | Ri | Rj | Rk | [Ri] ← 1 if [Rj]>=[Rk], else 0 |
 | Jumping | 0xE | JMP | @i_h | @i_l | | Jump to address @i (16bits) |
 | Conditional Jumping | 0xF | JMPC | @i_h | @i_l | Ri | Jump to address @i (16bits) if Ri = 0 |
-| Jumping to Register | 0x10 | JMPR | Ri | | | Saut à l’adresse @[Ri] |
+| Jumping to Register | 0x10 | JMPR | Ri | | | Jump to address @[Ri] |
 
 
 ## VHDL code
@@ -79,6 +79,8 @@ C Langage to ASM Compiler (Yacc/Lex) and Processor (VHDL)
   - VHDL Source Analysis Standard: VHDL-93
 
 ### Plan du chemin des données
+![Image of datapath](./pipeline.png)
+
 | Instructions | Banc de registres(r) | UAL | Mémoires des données |Banc de registres(w) |
 | --- | --- | --- | --- | --- |
 | Pointeur d'instruction `ip`| |Logic Controller `lcual`| Logic Controller `lcmem` | Logic Controller `lc` |
