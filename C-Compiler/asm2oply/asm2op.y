@@ -105,9 +105,9 @@ Line :
         | tSUPE tREG tREG tREG
             {printf("%02X%02X%02X%02X\n", SUPE, reg2int($2), reg2int($3), reg2int($4));}
         | tJMP tNB
-            {printf("%02X%02X0000\n", JMP, $2);}
+            {printf("%02X%04X00\n", JMP, $2);}
         | tJMPC tNB tREG
-            {printf("%02X%02X%02X00\n", JMPC, $2, reg2int($3));}
+            {printf("%02X%04X%02X\n", JMPC, $2, reg2int($3));}
         | tJMPR tREG
             {printf("%02X%02X0000\n", JMPR, reg2int($2));}
         | tPRT tREG
