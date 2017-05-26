@@ -31,7 +31,7 @@ use ieee.std_logic_arith.all;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity fpga is
+entity fpga is 
 	Port ( 
 			  RST : in STD_LOGIC;
 			  CLK : in STD_LOGIC;
@@ -44,7 +44,6 @@ entity fpga is
 			  VGA_vga_hsync : out std_logic;
 			  VGA_vga_vsync : out std_logic
 			  );
-
 
 end fpga;
 
@@ -254,7 +253,7 @@ architecture Behavioral of fpga is
 	signal RAM32_di : std_logic_vector(31 downto 0):= (others => '0');
 	signal RAM32_we : std_logic;
 	signal RAM32_a : std_logic_vector(15 downto 0):= (others => '0');
-	signal RAM32_do : std_logic_vector(31 downto 0);
+	signal RAM32_do : std_logic_vector(31 downto 0):= (others => '0');
 	
 	-- datain pour decode
 	signal DataIN : std_logic_vector(31 downto 0):= (others => '0');
@@ -307,7 +306,7 @@ architecture Behavioral of fpga is
    signal MUXREGS_DataOUT : std_logic_vector(15 downto 0) := (others => '0');
 	
 	--DI/EX
-	signal DIEX_NOP : std_logic;
+	signal DIEX_NOP : std_logic:= '0';
 	signal DIEX_Ain : std_logic_vector(15 downto 0) := (others => '0');
 	signal DIEX_Aout : std_logic_vector(15 downto 0) := (others => '0');
 	signal DIEX_OPin : std_logic_vector(7 downto 0) := (others => '0');
@@ -341,7 +340,7 @@ architecture Behavioral of fpga is
    signal MUXUAL_DataOUT : std_logic_vector(15 downto 0) := (others => '0');
 	
 	--EX/Mem
-	signal EXMEM_NOP : std_logic;
+	signal EXMEM_NOP : std_logic:= '0';
 	signal EXMEM_Ain : std_logic_vector(15 downto 0) := (others => '0');
 	signal EXMEM_Aout : std_logic_vector(15 downto 0) := (others => '0');
 	signal EXMEM_OPin : std_logic_vector(7 downto 0) := (others => '0');
@@ -376,7 +375,7 @@ architecture Behavioral of fpga is
 	signal VGA_mem_dw : std_logic_vector(15 downto 0):= (others => '0');
 	
 	--Mem/RE
-	signal MEMRE_NOP : std_logic;
+	signal MEMRE_NOP : std_logic:= '0';
 	signal MEMRE_Ain : std_logic_vector(15 downto 0) := (others => '0');
 	signal MEMRE_Aout : std_logic_vector(15 downto 0) := (others => '0');
 	signal MEMRE_OPin : std_logic_vector(7 downto 0) := (others => '0');
@@ -397,6 +396,7 @@ architecture Behavioral of fpga is
    signal MUXDATA_DataOUT : STD_LOGIC_VECTOR (15 downto 0) := (others => '0');
 	
    -- Clock period definitions
+	signal notRST : std_logic := '0';
    constant CLK_period : time := 10 ns;
  
 BEGIN
@@ -638,14 +638,15 @@ BEGIN
 	VGA_mem_a <= EXMEM_Bout (9 downto 0) & "0";--*2
 	VGA_mem_we <= LCMEM_out;
 	 
+	notRST <= not(RST);--VGA_vga_rst,sys_reset
 	-- VGA
 	vga: vga_top PORT MAP(
 	  -- System
 	  sys_clk => CLK,
-	  sys_rst => not(RST),
+	  sys_rst => notRST,
 	  -- VGA
 	  vga_clk => VGA_vga_clk,
-	  vga_rst => not(RST), --VGA_vga_rst,
+	  vga_rst => notRST, 
 	  vga_red => VGA_vga_red,
 	  vga_grn => VGA_vga_grn,
 	  vga_blu => VGA_vga_blu,

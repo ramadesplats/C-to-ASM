@@ -56,11 +56,13 @@ architecture Behavioral of ctlalea is
 	signal ecrire_memre : STD_LOGIC :='0';
 	signal alea : STD_LOGIC_VECTOR (1 downto 0) := "00";
 	signal change : STD_LOGIC :='0';
-	signal prevalea : STD_LOGIC_VECTOR (1 downto 0) := "00";
 	signal salea : STD_LOGIC_VECTOR (1 downto 0) := "00";
 	signal jump : STD_LOGIC := '0';
 	signal sjump : STD_LOGIC := '0';
-	signal NOPcounter: STD_LOGIC := '0';
+	signal NOPcounter1: STD_LOGIC := '0';
+	signal NOPcounter2: STD_LOGIC := '0';
+	signal NOPalea: STD_LOGIC := '0';
+	signal NOPjump: STD_LOGIC := '0';
 begin
 
 lire <= '1' when ((lidiOPin = x"01") or (lidiOPin = x"02") or (lidiOPin = x"03") or (lidiOPin = x"04")
@@ -80,69 +82,72 @@ ecrire_memre <= '1' when ((memreOPin = x"01") or (memreOPin = x"02") or (memreOP
 						or (memreOPin = x"05") or (memreOPin = x"06") or (memreOPin = x"07"))
 					else '0';
 
-jump <= '1' when ((diexOPin = x"0E") 
+jump <= '1' when ((diexOPin = x"0E" and CLK='0') 
 				or (diexOPin = x"0F" and diexBin = x"0000" and CLK='0')
 				or (diexOPin = x"10" and CLK='0'))
 			else '0';
 					
-alea <= "11" when( (lire = '1') and (ecrire_diex = '1') and ((lidiBin = diexAin) or (lidiCin = diexAin))) else
-		"10" when( (lire = '1') and (ecrire_exmem = '1') and ((lidiBin = exmemAin) or (lidiCin = exmemAin))) else
-		"01" when(( (lire = '1') and (ecrire_memre = '1') and ((lidiBin = memreAin) or (lidiCin = memreAin))) or ( jump = '1'))else
+alea <= "11" when( (lire = '1') and (ecrire_diex = '1') and ((lidiBin = diexAin) or (lidiCin = diexAin)) and CLK='0') else
+		"10" when( (lire = '1') and (ecrire_exmem = '1') and ((lidiBin = exmemAin) or (lidiCin = exmemAin)) and CLK='0') else
+		"01" when(( (lire = '1') and (ecrire_memre = '1') and ((lidiBin = memreAin) or (lidiCin = memreAin))) and CLK='0')else
 		"00";
 
-ch: process (alea, CLK) is
+ch: process (alea,CLK) is
 begin
-	if ((alea /= prevalea) and (alea /="00")) then
+	if ((alea /="00") and CLK='0') then
 		change <= '1';
 	else
 		change <= '0';
 	end if;
-	prevalea <= alea;
 end process;
 
-ipDINout  <= diexAin;
-
-ctl: process (change, CLK) is
+ctl: process (change, alea, CLK) is
 begin
-  if (change'event and change = '1') then
-		if (not (alea="00")) then
-			salea <= alea;
-			sjump <= jump;
-			if (jump = '1') then
-				ipLOADout <= '1';
-			else
-				ipLOADout <= '0';
-			end if;
-		end if;
-  end if;
-  
-  if (CLK'event and CLK = '1') then 
+  if rising_edge(CLK) then
 		if (salea = "00") then
-			ipLOADout <= '0';
 			ipENout <= '0';
-			if (NOPcounter /= '1') then
-				lidiNOPout <= '0';
+			if (NOPcounter1 /= '1') then
+				NOPalea <= '0';
 			end if;
-			NOPcounter <= '0';
+			NOPcounter1 <= '0';
 		else
-			if (sjump = '1') then
-				ipLOADout <= '1';
-			else
-				ipENout <= '1';
-				ipLOADout <= '0';
-			end if;
-			lidiNOPout <= '1';
+			ipENout <= '1';
+			NOPalea <= '1';
 			salea <=  salea - "01";
-			NOPcounter <= '1';
-		end if;
-  elsif falling_edge(CLK) then
-		-- front descendant
-		ipLOADout <= '0';
-		if ((sjump = '1') and (NOPcounter = '0')) then
-			lidiNOPout <= '0';
+			NOPcounter1 <= '1';
 		end if;
   end if;
   
+	if (change = '1') then
+		salea <= alea;
+	end if;
 end process;
+
+ctljump: process(jump, diexAin, CLK)is
+begin
+	if rising_edge(CLK) then
+		if (sjump = '0') then
+			ipLOADout <= '0';
+			if (NOPcounter2 /= '1') then
+				NOPjump <= '0';
+			end if;
+			NOPcounter2 <= '0';
+		else
+			ipLOADout <= '1';
+			NOPjump <= '1';
+			sjump <= '0';
+			NOPcounter2 <= '1';
+		end if;
+  end if;
+  
+  -- cette block devant rising edge provoque non synsthesi
+	if (jump = '1') then
+		sjump <= jump;
+		ipDINout  <= diexAin;
+	end if;
+end process;
+
+lidiNOPout <= NOPalea or NOPjump;
+
 end Behavioral;
 

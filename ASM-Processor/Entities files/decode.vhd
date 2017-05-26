@@ -84,7 +84,5 @@ begin
 		C <= x"00"&abctmp(7 downto 0);
 	end case;
 end process;
-
-
 end Behavioral;
 

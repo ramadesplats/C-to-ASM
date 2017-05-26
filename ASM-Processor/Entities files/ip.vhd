@@ -57,9 +57,11 @@ begin
     if rising_edge(CLK) then
         if(RST = '0') then
             memory <= x"0000";
+				change <= '0';
         else
             if(LOAD='1') then
                 memory <= DIN;
+					 change <= '0';
             else
                 if(EN='0') then
                     memory <= memory+x"0001";

@@ -89,6 +89,7 @@ begin
 		O <= result(31) or result(30) or  result(29) or result(28) or result(27) or result(26) or result(25) or result(24) or result(23)
  or result(22) or result(21) or result(20) or result(19) or result(18) or result(17) or result(16);
 	when others => --000
+		O <= '0';
 	end case;
 end process;
 
