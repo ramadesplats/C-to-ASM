@@ -1,0 +1,42 @@
+# Si on veut utiliser la véritable horloge présente sur la board
+# NET "clk" LOC = "V10" | IOSTANDARD = "LVCMOS33";
+# Net "clk" TNM_NET = sys_clk_pin;
+# TIMESPEC TS_sys_clk_pin = PERIOD sys_clk_pin 100000 kHz;
+
+# Boutons
+# BTNS
+NET "clk" LOC = "B8" | IOSTANDARD = "LVCMOS33";
+# Cette ligne est indispensable car on va considérer une entrée non prévue pour
+# être une horloge comme telle. Les horloges sont traitées différemment lors du
+# routage
+# Cette ligne génère donc un warning.
+NET "clk" CLOCK_DEDICATED_ROUTE = FALSE;
+# BTNU
+NET "rst" LOC = "A8" | IOSTANDARD = "LVCMOS33";
+# Left
+# NET "sens" LOC = "C4" | IOSTANDARD = "LVCMOS33";
+# BTND
+# NET "load" LOC = "C9" | IOSTANDARD = "LVCMOS33";
+# BTNR
+# NET "en" LOC = "D9" | IOSTANDARD = "LVCMOS33";
+
+# Leds
+NET "dout<0>" LOC = "U16" | IOSTANDARD = "LVCMOS33";
+NET "dout<1>" LOC = "V16" | IOSTANDARD = "LVCMOS33";
+NET "dout<2>" LOC = "U15" | IOSTANDARD = "LVCMOS33";
+NET "dout<3>" LOC = "V15" | IOSTANDARD = "LVCMOS33";
+NET "dout<4>" LOC = "M11" | IOSTANDARD = "LVCMOS33";
+NET "dout<5>" LOC = "N11" | IOSTANDARD = "LVCMOS33";
+NET "dout<6>" LOC = "R11" | IOSTANDARD = "LVCMOS33";
+NET "dout<7>" LOC = "T11" | IOSTANDARD = "LVCMOS33";
+
+# Switches pour din
+#NET "din<0>" LOC = "T10" | IOSTANDARD = "LVCMOS33";
+#NET "din<1>" LOC = "T9" | IOSTANDARD = "LVCMOS33";
+#NET "din<2>" LOC = "V9" | IOSTANDARD = "LVCMOS33";
+#NET "din<3>" LOC = "M8" | IOSTANDARD = "LVCMOS33";
+#NET "din<4>" LOC = "N8" | IOSTANDARD = "LVCMOS33";
+#NET "din<5>" LOC = "U8" | IOSTANDARD = "LVCMOS33";
+#NET "din<6>" LOC = "V8" | IOSTANDARD = "LVCMOS33";
+#NET "din<7>" LOC = "T5" | IOSTANDARD = "LVCMOS33";
+
