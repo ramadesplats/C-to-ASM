@@ -1,24 +1,24 @@
 # C-to-ASM
-C Langage to ASM Compiler (Yacc/Lex) and Processor (VHDL)
+Langage C to ASM Compiler (Yacc/Lex) and Processor (VHDL)
 
-**Keyword**: Compiler C, Lex, Yacc, ASM, Xilinx ISE, VHDL, FPGA
+**Keyword**: C Compiler, Lex, Yacc, ASM, Xilinx ISE, VHDL, FPGA
 
-**Description**: Write a compiler for language C and generate code ASM. Then, create a system on chip (FPGA) to execute the ASM code.
+**Description**: We developped a compiler for C language that generates ASM code. Then, we created a processor using VHDL for an on chip system (FPGA) to execute the ASM code.
 
 **Files**
 - `C-Compiler/`
-  - `C-Compiler/cly` compiler C to ASM
-  - `C-Compiler/asmly` simulate execution ASM
+  - `C-Compiler/cly` C compiler to ASM
+  - `C-Compiler/asmly` simulate ASM execution 
   - `C-Compiler/asm2oply` generate OP code from ASM code
-  - `C-Compiler/test` some C test, if you want to compile your proper C, you can take a look on it
+  - `C-Compiler/test` some C test, if you want to compile your own customized C, you can have a look on some of our examples
 - `ASM-Processor/`
   - lib: homepages.laas.fr/bmorgan/soc.tgz
-  - `ASM-Processor/Configuration file` implementation configure file
+  - `ASM-Processor/Configuration file` configuration file of our processor
   - `ASM-Processor/Entities files` main module `fpga.vhd` and sub-modules
-  - `ASM-Processor/RAM files` file for init values of ROM 32 bits (`init32.hex`), RAM 16 bits (`init16.hex`)
-  - `ASM-Processor/Test files` simulation of main module `fpgatest.vhd`, ans somes test bench for sub-modules
+  - `ASM-Processor/RAM files` files for init values of ROM 32 bits (`init32.hex`), RAM 16 bits (`init16.hex`)
+  - `ASM-Processor/Test files` simulation of main module `fpgatest.vhd`, and some other test benches for sub-modules
 
-# Details
+# More detailed informations
 ## C code
 - variable type
   - int, const int
@@ -51,24 +51,24 @@ C Langage to ASM Compiler (Yacc/Lex) and Processor (VHDL)
 | Load | 0x07 | LOAD | Rbp | j | Ri | @[[Rbp]+j] ← [Ri] |
 | Save | 0x08 | STORE | Ri | Rbp | j | [Ri] → @[[Rbp]+j] |
 | Equal | 0x09 | EQU | Ri | Rj | Rk | [Ri] ← 1 if [Rj]=[Rk], else 0 |
-| Inferior | 0xA | INF | Ri | Rj | Rk | [Ri] ← 1 if [Rj]<[Rk], else 0 |
-| Inferior equal | 0xB | INFE | Ri | Rj | Rk | [Ri] ← 1 if [Rj]<=[Rk], else 0 |
-| Superior | 0xC | SUP | Ri | Rj | Rk | [Ri] ← 1 if [Rj]>[Rk], else 0 |
-| Superior equal | 0xD | SUPE | Ri | Rj | Rk | [Ri] ← 1 if [Rj]>=[Rk], else 0 |
+| Inferior | 0xA | INF | Ri | Rj | Rk | [Ri] ← 1 si [Rj]<[Rk], else 0 |
+| Inferior equal | 0xB | INFE | Ri | Rj | Rk | [Ri] ← 1 si [Rj]<=[Rk], else 0 |
+| Superior | 0xC | SUP | Ri | Rj | Rk | [Ri] ← 1 si [Rj]>[Rk], else 0 |
+| Superior equal | 0xD | SUPE | Ri | Rj | Rk | [Ri] ← 1 si [Rj]>=[Rk], else 0 |
 | Jumping | 0xE | JMP | @i_h | @i_l | | Jump to address @i (16bits) |
 | Conditional Jumping | 0xF | JMPC | @i_h | @i_l | Ri | Jump to address @i (16bits) if Ri = 0 |
-| Jumping to Register | 0x10 | JMPR | Ri | | | Jump to address @[Ri] |
+| Jumping to Register | 0x10 | JMPR | Ri | | | Saut à l’adresse @[Ri] |
 
 
 ## VHDL code
 ### Overview
-- Conception of a microprocessor, type RISC, with 5 level pipe-line
+- Conception of a microprocessor,RISC type, with 5 level pipe-line architecture
 - Input: `init32.hex`
-  - Compatible avec les codes générés par Compilateur C
+  - Also works with generated outputs from the C compiler
 - RAM Memory: `init16.hex`
-  - Si on veux initialisé le contenu du RAM
-- Fréquences de fonctionnement: `92MHz` (requis 100 MHz, n'est pas satisfait à l'état actuelle du projet)
-- Config projet  
+  - Implement this file if you want to input values in the RAM memory
+- Fréquences de fonctionnement: `92MHz` (A 100 MHz frequency is required, a requirement not satisfied in the actual state of the project)
+- Project configurations  
   - Family: Spartan6
   - Device: XC6SLX16
   - Package: CSG324
@@ -78,50 +78,48 @@ C Langage to ASM Compiler (Yacc/Lex) and Processor (VHDL)
   - Preferred Language: VHDL
   - VHDL Source Analysis Standard: VHDL-93
 
-### Plan du chemin des données
-![Image of datapath](./pipeline.png)
-
-| Instructions | Banc de registres(r) | UAL | Mémoires des données |Banc de registres(w) |
+### Data path
+| Instructions | Banc de registres(r) | UAL | Data memory |Banc de registres(w) |
 | --- | --- | --- | --- | --- |
 | Pointeur d'instruction `ip`| |Logic Controller `lcual`| Logic Controller `lcmem` | Logic Controller `lc` |
 | ROM 32 bits `bram32`| Registres `regs/read` | UAL `ual` | RAM `bram16` + VGA `vga_top`| Registres `regs/write` |
 | Décodeur `decode`| Multiplexer `mux` | Multiplexer `muxual` | | Multiplexer `muxdata` |
 
-\* `pipeline` Le passage entre les différents niveau de pipeline. synchrone, probager les valeurs OP, A, B, C à la sortie à chaque rising_edge(CLK), reset asynchrone avec signal NOP.
+\* `pipeline` Data are transferred synchronously between the different levels of pipeline. Spread OP, A, B and C values on rising_edge(CLK). Also work asynchrously with NOP signal.
 
-\*\* `ctlalea` Control aléa de donnée est mis en place pour gestion d'un write suivi d'un read sur le même registre; control aléa de branchement est pour gestion des jump.
+\*\* `ctlalea` Control data hazards is set when immediately reading after writing from the same register; Control of branching hazards is related to the Jump instruction.
 
 ### Explcation des unités
 - IP
-  - synchrone rising_edge(CLK)
-  - pointeur d'instruction est un compteur, il pointe sur la prochaine ligne qu'on veut exécuté
-  - Lors d'un aléa de donnée est détecter, IP arrête de compter pour laisser finir l'instruction écrire critique
+  - Synchronous on rising_edge(CLK)
+  - Instruction pointer works as a counter and point on the next instruction that is going to be executed
+  - When data hazard is detected, the IP stop counting in order to let the writing end
 - ROM
-  - synchrone rising_edge(CLK)
-  - contient les instructions que l'on veut exécuter
+  - Synchronous on rising_edge(CLK)
+  - Memory of instructions to be executed
 - Décode
-  - combinatoire
-  - Décodeur prend 32 bits à l'entrée et les séparent, selon OP, dans signaux A, B et C de 16 bits
+  - Combinatory mode
+  - Decoder that take a 32-bit instruction and split it, depending on the OP-code, in 16-bit A, B and C signals
 - Registres
-  - synchrone failling_edge(CLK)
-    - pour garandir chaque pipeline se fait dans 1 CLK période
-  - 32 registres de 16 bits synchrone
-  - l'écriture et la lecture simultané est possible, considéré comme d'abord fait l'écriture
+  - Synchronous on falling_edge(CLK)
+    - Guarantee that each pipeline is done in one CLK tick
+  - 32 syncronous registers of 16 bits 
+  - Simultaneous writing and reading is allowed but writing is done first
 - UAL
-  - combinatoire
-  - permet de faire ADD, MUL, SUB, (DIV non implémenté)
+  - Combinatory mode
+  - Allow the ADD, MUL and SUB operation (DIV isn't implemented yet)
 - RAM
-  - synchrone rising_edge(CLK)
-  - plage 0x0000 - 0x3FFFF
+  - Synchronous on rising_edge(CLK)
+  - Adresses between 0x0000 - 0x3FFFF
 - VGA
-  - synchrone rising_edge(CLK)
-  - plage 0x4000 - 0x7FFF
+  - Synchronous on rising_edge(CLK)
+  - Adresses between 0x4000 - 0x7FFF
 - LC logic controller
-  - combinatoire
-  - Il s'agit de détecter la présence d'une action write (registres ou mémoires), ou de repéré le calcul arithmétique voulu (ual)
+  - Combinatory mode
+  - The Logic Controller goal is to detect a writing action (on register or in memory) and to detect arithmetical operations (in UAL)
 - Multiplexer
-  - combinatoire
-  - Ceci s'agit de la choix entre signal passé par module (par exemple UAL), ou la valeur probagé depuis le pipeline précédent
+  - Combinatory mode
+  - Choose between a signal given by an entity or the value spread by the previous pipeline depending on the OP code
 
 ### Amélioration
 - Fréquence de fonctionnement
