@@ -57,7 +57,7 @@ Langage C to ASM Compiler (Yacc/Lex) and Processor (VHDL)
 | Superior equal | 0xD | SUPE | Ri | Rj | Rk | [Ri] ← 1 si [Rj]>=[Rk], else 0 |
 | Jumping | 0xE | JMP | @i_h | @i_l | | Jump to address @i (16bits) |
 | Conditional Jumping | 0xF | JMPC | @i_h | @i_l | Ri | Jump to address @i (16bits) if Ri = 0 |
-| Jumping to Register | 0x10 | JMPR | Ri | | | Saut à l’adresse @[Ri] |
+| Jumping to Register | 0x10 | JMPR | Ri | | | Jump to address @[Ri] |
 
 
 ## VHDL code
@@ -121,20 +121,20 @@ Langage C to ASM Compiler (Yacc/Lex) and Processor (VHDL)
   - Combinatory mode
   - Choose between a signal given by an entity or the value spread by the previous pipeline depending on the OP code
 
-### Amélioration
-- Fréquence de fonctionnement
-  - trouvé la chemin critique du code, essayer d'améliorer la fréquence de fonctionnement
+### Possible improvement
+- Operating frequency
+  -  Find the critical path in the code and try to optimize the operating frequency
 - VGA
-  - à l'état actuelle, l'affichage à l'écran VGA ne fonctionne pas, il n'y a aucun signal à la sortie
-- Détection Aléa
-  - Manque de séparation de cas READ x r 0 / READ x r r / READ x 0 r, c-à-d la lecture se fait sur quelle registre
-  - L'écriture est la lecture simultané est possible, donc on peut encore réduire le temps d'attente lors de la détection d'un aléa de donnée
-- Les instructions non traité: EQU, INF, INFE, SUP, SUPE
-  - Aélioration possible: dans UAL faire Rj-Rk, affecter dans Ri selon la règle suivant
+  - Should allow printing on VGA screen but isn't working at the moment
+- Hazard detection
+  - Blurry separation of the case READ x r 0 / READ x r r / READ x 0 r, c-à-d la lecture se fait sur quelle registre
+  - As writing and reading is allowed we should be able to reduce waiting time when detecting a data hazard
+- Not yet implemented operations: EQU, INF, INFE, SUP, SUPE
+  - Possible improvements: in the UAL, do Rj-Rk, then affect Ri given the following rules
     - EQU = Z
     - INF = N
     - INFE = N or Z
     - SUP = not(N or Z)
     - SUPE = not(N)
-- L'accès mémoire avec connecteur de bus non traité
-  - Normalement il faut un module au milieu (`cores/conbus1x4.v`) pour multiplexer l'accès mémoire, selon les différents adresse, on peut accéder à RAM, Core Vidéo vga, Périphériques et Timers. Mais pour l'instant on a brancher directement les sigaux de adresse, data in, data out, we à module RAM etc.
+- Memory access with bus connector 
+  - Eventually, we coud use a in-between entity (`cores/conbus1x4.v`) to mul pour multiplex memory access. Depending on the different adresses, we can accessto the RAM, VGA Core Video, Peripherals and Timers.
