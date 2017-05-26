@@ -79,6 +79,8 @@ Langage C to ASM Compiler (Yacc/Lex) and Processor (VHDL)
   - VHDL Source Analysis Standard: VHDL-93
 
 ### Data path
+![Image of datapath](./pipeline.png)
+
 | Instructions | Banc de registres(r) | UAL | Data memory |Banc de registres(w) |
 | --- | --- | --- | --- | --- |
 | Instruction pointer `ip`| |Logic Controller `lcual`| Logic Controller `lcmem` | Logic Controller `lc` |
