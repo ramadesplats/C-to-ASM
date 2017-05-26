@@ -75,15 +75,15 @@ Langage C to ASM Compiler (Yacc/Lex) and Processor (VHDL)
   - Speed: -3
   - Synthesis Tool: XST (VHDL/Verilog)
   - Simulator: ISim (VHDL/Verilog)
-  - Preferred Language: VHDL
+  - Prefered Language: VHDL
   - VHDL Source Analysis Standard: VHDL-93
 
 ### Data path
 | Instructions | Banc de registres(r) | UAL | Data memory |Banc de registres(w) |
 | --- | --- | --- | --- | --- |
-| Pointeur d'instruction `ip`| |Logic Controller `lcual`| Logic Controller `lcmem` | Logic Controller `lc` |
-| ROM 32 bits `bram32`| Registres `regs/read` | UAL `ual` | RAM `bram16` + VGA `vga_top`| Registres `regs/write` |
-| Décodeur `decode`| Multiplexer `mux` | Multiplexer `muxual` | | Multiplexer `muxdata` |
+| Instruction pointer `ip`| |Logic Controller `lcual`| Logic Controller `lcmem` | Logic Controller `lc` |
+| ROM 32 bits `bram32`| Registers `regs/read` | UAL `ual` | RAM `bram16` + VGA `vga_top`| Registers `regs/write` |
+| Decoder `decode`| Multiplexer `mux` | Multiplexer `muxual` | | Multiplexer `muxdata` |
 
 \* `pipeline` Data are transferred synchronously between the different levels of pipeline. Spread OP, A, B and C values on rising_edge(CLK). Also work asynchrously with NOP signal.
 
