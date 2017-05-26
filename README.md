@@ -127,7 +127,7 @@ Langage C to ASM Compiler (Yacc/Lex) and Processor (VHDL)
 - VGA
   - Should allow printing on VGA screen but isn't working at the moment
 - Hazard detection
-  - Blurry separation of the case READ x r 0 / READ x r r / READ x 0 r, c-à-d la lecture se fait sur quelle registre
+  - Blurry separation of the diffrent READ cases : e.g. READ x r 0 / READ x r r / READ x 0 r
   - As writing and reading is allowed we should be able to reduce waiting time when detecting a data hazard
 - Not yet implemented operations: EQU, INF, INFE, SUP, SUPE
   - Possible improvements: in the UAL, do Rj-Rk, then affect Ri given the following rules
