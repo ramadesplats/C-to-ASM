@@ -7,7 +7,8 @@
 #include <stdarg.h>
 
 /**********************************************************************************
- * Constants and symbols definitions **********************************************************************************/
+ * Constants and symbols definitions
+ **********************************************************************************/
 
 /* Type definition for the type column of the symbol table*/
 #define TYPE_NORMAL 0
@@ -34,6 +35,7 @@
 #define MAXTABVAR 100
 #define MAXTABINSRTUCT 1024
 #define MAXTABFUNC 20
+#define MAXTABPOSTADD 20
 
 /* Type definition for enhanced printf */
 #define RESET   "\033[0m"
@@ -63,6 +65,8 @@ int get_ebp();
 void set_ebp(int val);
 /* the first instruction begin at line 0 */
 int get_asmline();
+int get_isAdress();
+void set_isAdress(int val);
 /* variable depth */
 void set_depth_add1();
 void set_depth_sub1();
@@ -97,6 +101,13 @@ int tID_value(char *id);
 int tNB_value(int val);
 int tMULtID_value(char *id);
 int tADRtID_value(char *id);
+/* increment */
+int tINCREMENTtID_value(char *id);
+int tIDtINCREMENT_value(char *id);
+int tINCREMENTtID_affectation(char *id);
+int tIDtINCREMENT_affectation(char *id);
+void tab_postadd_flush(int depth);
+/* arith */
 int arithmetical_expression(int type);
 
 /* jump if and while */
@@ -118,6 +129,9 @@ void before_call_function();
 void add_param_function();
 /* return -1 if not define */
 int call_function(char*id, int asmline_after_before_call);
+/* return value */
+void set_return_value_to_r0();
+int get_return_value_from_r0();
 
 /* error */
 extern void PrintError(char *errorstring, ...);

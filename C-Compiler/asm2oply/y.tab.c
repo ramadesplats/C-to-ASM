@@ -1492,12 +1492,12 @@ yyreduce:
 
   case 18:
 #line 108 "asm2op.y"
-    {printf("%02X%02X0000\n", JMP, (yyvsp[(2) - (2)].nb));}
+    {printf("%02X%04X00\n", JMP, (yyvsp[(2) - (2)].nb));}
     break;
 
   case 19:
 #line 110 "asm2op.y"
-    {printf("%02X%02X%02X00\n", JMPC, (yyvsp[(2) - (3)].nb), reg2int((yyvsp[(3) - (3)].str)));}
+    {printf("%02X%04X%02X\n", JMPC, (yyvsp[(2) - (3)].nb), reg2int((yyvsp[(3) - (3)].str)));}
     break;
 
   case 20:

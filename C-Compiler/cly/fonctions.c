@@ -25,6 +25,11 @@ typedef struct {
     int begin_asm;
 } type_tab_func;
 
+typedef struct {
+    char *id;
+    int depth;
+} type_tab_postadd;
+
 /* The symbol table */
 type_tabvar tabvar[MAXTABVAR];
 
@@ -34,7 +39,11 @@ type_tab_instruct tab_instruct[MAXTABINSRTUCT];
 /* The function table */
 type_tab_func tab_func[MAXTABFUNC];
 
+/* The post increment table */
+type_tab_postadd tab_postadd[MAXTABPOSTADD];
+
 /* Global variable declarations*/
+//top of memory(TOPMEMO)+ebp+compteur_ebp+compteur_tmp = adresse
 int compteur_ebp;
 int compteur_tmp;
 int current_depth;
@@ -42,6 +51,7 @@ int compteur_asm;
 int ebp;
 int compteur_func;
 int isAdress;
+int compteur_postadd;
 
 
 /* func interne
@@ -59,6 +69,8 @@ int find_func(char*id);
 /* return index of var in tab_var, or -1 not find*/
 int find_var(char*var);
 int arithmetical_E2E(int type);
+/* post increment, return index of var incremented */
+int tab_postadd_flush1();
 
 /* getter setter
 ******************************/
@@ -79,7 +91,7 @@ void set_ebp(int val){
 }
 
 int get_asmline(){
-	return compteur_asm;
+    return compteur_asm;
 }
 
 void set_depth_add1(){
@@ -95,7 +107,6 @@ int get_depth(){
 }
 
 /* to know if in an affectation, the value is an address or not */
-
 int get_isAdress(){
     return isAdress;
 }
@@ -120,9 +131,9 @@ void init(){
 ******************************/
 void write_asm(){
     int iterator;
-    printf( BOLDBLACK "\n==> Creating the files\n\n" RESET );
+    printf( BOLDBLACK "\n==> Creating the files\n" RESET );
     FILE* fichier=fopen("result_clair.txt", "w");
-    printf( BOLDBLACK "\n==> Writing ASMLines in file\n\n" RESET );
+    printf( BOLDBLACK "\n==> Writing ASMLines in file\n" RESET );
     for(iterator=0;iterator<compteur_asm;iterator++){
         fwrite(tab_instruct[iterator].instruct, 1, sizeof(char)*5, fichier);
         fwrite(" ",1,sizeof(char),fichier);
@@ -244,8 +255,8 @@ int create_malloc(char*p){
         result = -3;
     }else{//type=TYPE_POINTEUR
         result = 0;
-        tabvar[index].init=1;
-        // if *p = malloc() then consider it is initialized
+        tabvar[index].init=1; // i.e malloc or adress
+        // *p=_vpt
 
         index2 = tab_var_add("_vpt", TYPE_NORMAL);
         // but in index2 there can be an other value, it is not really "initialised"
@@ -262,8 +273,7 @@ int create_malloc(char*p){
         tab_inst_addline("STORE","R31",charvalue,"R0");
 
         //debug info
-        printf(CYAN "\n==> " RESET);
-        printf("Malloc *pointeur %s\n", p);
+        //printf(CYAN "\n==> " RESET "Malloc *pointeur %s\n", p);
     }
 
     free(charvalue);
@@ -306,14 +316,12 @@ int affect_variable(char *var1,int adre1){
             }
         }
 
-        print_symbol_table();
         //debug info
-        printf(CYAN "\n==> " RESET);
-        printf("Affectation %s\n", var1);
+        //printf(CYAN "\n==> " RESET "Affectation %s\n", var1);
         /* at adr1 we have the temporary value for var1
         * That is why we decrement the temporary variable counter.
         */
-        printf(YELLOW "Removing tmp variable at adress +%d.\n"RESET,compteur_tmp);
+        //printf(YELLOW "Removing tmp variable at adress +%d.\n"RESET,compteur_tmp);
     }
 
     set_isAdress(0);
@@ -343,15 +351,14 @@ int affect_pointeur(char *p, int adre1){
         tab_inst_addline("STORE","R1","0","R0");
 
         //debug info
-        printf(CYAN "\n==> " RESET);
-        printf("Affectation pointeur %s, make sure that p contains a correct adress\n", p);
+        printf(CYAN "\n==> " RESET "Affectation pointeur %s, make sure that p contains a correct adress\n", p);
         if(get_isAdress()==1){
             printf(BOLDYELLOW"warning: try to affect an adresse to *pointer %s\n"RESET,p);
         }
         /* at adr1 we have the temporary value for var1
         * That is why we decrement the temporary variable counter.
         */
-        printf(YELLOW "Removing tmp variable at adress +%d.\n" RESET,compteur_tmp);
+        //printf(YELLOW "Removing tmp variable at adress +%d.\n" RESET,compteur_tmp);
     }
 
     set_isAdress(0);
@@ -363,8 +370,7 @@ int affect_pointeur(char *p, int adre1){
 /* return -1 if already define at current depth*/
 int declare_variable(char *var1, int type){
     int result = 0;
-    printf(GREEN "\n==> " RESET);
-    printf("Declaration %s.\n", var1);
+    //printf(GREEN "\n==> " RESET "Declaration %s.\n", var1);
     int index = find_var(var1);
     if(index == -1){//not define
         tab_var_add(var1, type);
@@ -380,8 +386,7 @@ int declare_variable(char *var1, int type){
 /* return -1 if already define at current depth*/
 int declare_variable_affectation(char *var1, int type){
     int result = 0;
-    printf(GREEN "==> " RESET);
-    printf("Declaration with affectation %s.\n", var1);
+    //printf(GREEN "==> " RESET "Declaration with affectation %s.\n", var1);
     int index = find_var(var1);
     int index2;
 
@@ -505,6 +510,91 @@ int tADRtID_value(char*id){
     return result;
 }
 
+int tINCREMENTtID_value(char *id){
+    int result = -1;
+    char *charvalue=malloc(sizeof(char)*2);
+    int index = find_var(id);
+
+    if(index == -1){//not define
+        result = -1;
+    }else{
+
+        result = tab_var_addtmp(0);
+
+        sprintf(charvalue,"%d",(index-ebp));
+        tab_inst_addline("LOAD","R0","R31",charvalue);
+        tab_inst_addline("AFC","R1","1","");
+        tab_inst_addline("ADD","R0","R0","R1");
+        // store to var
+        tab_inst_addline("STORE","R31",charvalue,"R0");
+        // store to tmp
+        sprintf(charvalue,"%d",(result-ebp));
+        tab_inst_addline("STORE","R31",charvalue,"R0");
+
+        //if id is a pointer, then its value is an adress
+        if (tabvar[index].type==TYPE_POINTEUR){
+            set_isAdress(1);
+        }
+    }
+
+    free(charvalue);
+    return result;
+}
+
+int tIDtINCREMENT_value(char *id){
+    int index = compteur_postadd;
+    printf("POST INCREMENT DETECTED\n");
+    tab_postadd[index].id=id;
+    tab_postadd[index].depth=get_depth();
+
+    compteur_postadd++;
+    return tID_value(id);
+}
+
+int tINCREMENTtID_affectation(char *id){
+    //similar to tINVREMENTtID_value but no var tmp
+    char *charvalue=malloc(sizeof(char)*2);
+    int index = find_var(id);
+
+    if(index == -1){//not define
+    }else{
+        sprintf(charvalue,"%d",(index-ebp));
+        tab_inst_addline("LOAD","R0","R31",charvalue);
+        tab_inst_addline("AFC","R1","1","");
+        tab_inst_addline("ADD","R0","R0","R1");
+        // store to var
+        tab_inst_addline("STORE","R31",charvalue,"R0");
+    }
+
+    free(charvalue);
+    return index;
+}
+
+int tIDtINCREMENT_affectation(char *id){
+    int index = compteur_postadd;
+    printf("POST INCREMENT DETECTED\n");
+    tab_postadd[index].id=id;
+    tab_postadd[index].depth=get_depth();
+    compteur_postadd++;
+
+    index = tab_postadd_flush1();
+    return index;
+}
+
+void tab_postadd_flush(int depth){
+    int index;
+    //printf("POST INCREMENT FLUSH? depth:%d\n", depth);
+    for(index=compteur_postadd-1;index>=0;index--){
+        if (tab_postadd[index].depth<depth){
+            //printf("POST INCREMENT FLUSH? NO. depth:%d\n", tab_postadd[index].depth);
+            break;
+        }else{//>=depth
+            //printf("POST INCREMENT FLUSH1, index:%d\n", index);
+            tab_postadd_flush1();
+        }
+    }
+}
+
 int arithmetical_expression(int type){
     int result = -1;
     switch (type) {
@@ -554,26 +644,26 @@ int arithmetical_expression(int type){
 /* jump
 ******************************/
 void create_jump_if(){
-	char *charvalue=malloc(sizeof(char)*2);
+    char *charvalue=malloc(sizeof(char)*2);
 
     // asm get _tmp & load value
     sprintf(charvalue,"%d",(compteur_ebp+compteur_tmp-1));
     tab_inst_addline("LOAD","R0","R31",charvalue);
     tab_inst_addline("JMPC","X","R0","");//R0=cond
 
-	// remove condition
-	compteur_tmp--;
+    // remove condition
+    compteur_tmp--;
 
     free(charvalue);
 }
 
 void set_jump(int asmline){
-	char *charvalue=malloc(sizeof(char)*2);
+    char *charvalue=malloc(sizeof(char)*2);
 
     // set at next asm line
     sprintf(charvalue,"%d",get_asmline());
     tab_inst_set_reg1(asmline-1,charvalue);
-    printf(MAGENTA"Set jump of asm_line %d destination:%s\n"RESET, asmline, charvalue);
+    //printf(MAGENTA"Set jump of asm_line %d destination:%s\n"RESET, asmline, charvalue);
     free(charvalue);
 }
 
@@ -587,14 +677,14 @@ void set_jump_fin_else(int asmline){
 }
 
 void create_jump_while(){
-	create_jump_if();
+    create_jump_if();
 }
 
 void set_while_jump(int asmline_before_cond, int asmline_after_jmpc){
-	char *charvalue=malloc(sizeof(char)*2);
+    char *charvalue=malloc(sizeof(char)*2);
 
-	// set JMP for begin cond
-	sprintf(charvalue,"%d",asmline_before_cond);
+    // set JMP for begin cond
+    sprintf(charvalue,"%d",asmline_before_cond);
     tab_inst_addline("JMP",charvalue,"","");
 
     // set JMPC
@@ -652,7 +742,7 @@ void add_arg_function(char *var1, int type){
         tabvar[index].type = type;
     }
 
-    printf("Add arg function %s. index %d\n",var1, index);
+    //printf("Add arg function %s. index %d\n",var1, index);
     set_isAdress(0);
 }
 
@@ -737,6 +827,31 @@ int call_function(char*id, int asmline_after_before_call){
     return index_func;
 }
 
+void set_return_value_to_r0(){
+    char *charvalue=malloc(sizeof(char)*2);
+
+    // the only tmp is value of return
+    sprintf(charvalue,"%d",compteur_ebp);
+    tab_inst_addline("LOAD","R0","R31",charvalue);
+
+    compteur_tmp--;
+    free(charvalue);
+}
+
+int get_return_value_from_r0(){
+    // like tNB_value
+    int index = -1;
+    char *charvalue=malloc(sizeof(char)*2);
+
+    index = tab_var_addtmp(0);
+
+    sprintf(charvalue,"%d",(index-ebp));
+    tab_inst_addline("STORE","R31",charvalue,"R0");
+
+    free(charvalue);
+    return index;
+}
+
 /******************************
 * code func interne
 ******************************/
@@ -775,8 +890,7 @@ int tab_var_add(char*id, int type){
     tabvar[index].type=type;
     tabvar[index].init=0;
     tabvar[index].depth=current_depth;
-    printf(BLUE "Added %s at adress %d, depth=%d.\n", id, ebp+compteur_ebp, current_depth);
-    printf(RESET);
+    //printf(BLUE "Added %s at adress %d, depth=%d.\n" RESET, id, ebp+compteur_ebp, current_depth);
 
     compteur_ebp++;
     return index;
@@ -788,7 +902,7 @@ int tab_var_addtmp(int val){
     tabvar[index].id=NULL;
     tabvar[index].adresse=TOPMEMO+index;
     tabvar[index].type=TYPE_TMP;
-    printf("Added temporary %s at index %d with value %d.\n", tabvar[index].id, index, val);
+    //printf("Added temporary %s at index %d with value %d.\n", tabvar[index].id, index, val);
 
     compteur_tmp++;
     return index;
@@ -819,6 +933,7 @@ void tab_func_nbarg_add1(){
 /* return index of func, or -1 not find*/
 int find_func(char*id){
     int index;
+
     for(index=compteur_func-1;index>=0;index--){
         if(strcmp(tab_func[index].id,id)==0){
             break;
@@ -859,7 +974,7 @@ int arithmetical_E2E(int type){
             tab_inst_addline("DIV","R0","R0","R1");
             break;
         case INF:
-        	tab_inst_addline("INF","R0","R0","R1");
+            tab_inst_addline("INF","R0","R0","R1");
             break;
         case SUP:
             tab_inst_addline("SUP","R0","R0","R1");
@@ -878,6 +993,28 @@ int arithmetical_E2E(int type){
     //sprintf(charvalue,"%d",(index-ebp));
     tab_inst_addline("STORE","R31",charvalue,"R0");
     compteur_tmp--;
+
+    free(charvalue);
+    return index;
+}
+
+
+int tab_postadd_flush1(){
+    char *charvalue=malloc(sizeof(char)*2);
+    int index;
+
+    compteur_postadd--;// de-increment
+    index = find_var(tab_postadd[compteur_postadd].id);
+    //printf("POST INCREMENT FLUSH1 INDEX %d %s\n", index, tab_postadd[compteur_postadd].id);
+
+    if(index == -1){//not define
+    }else{
+        sprintf(charvalue,"%d",(index-ebp));
+        tab_inst_addline("LOAD","R0","R31",charvalue);
+        tab_inst_addline("AFC","R1","1","");
+        tab_inst_addline("ADD","R0","R0","R1");
+        tab_inst_addline("STORE","R31",charvalue,"R0");
+    }
 
     free(charvalue);
     return index;

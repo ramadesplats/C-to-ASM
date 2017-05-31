@@ -9,7 +9,6 @@ int yylex(void);
 void yyerror(char *s);
 int compteur_error;
 
-
 %}
 
 /*Union for yyval*/
@@ -41,8 +40,10 @@ int compteur_error;
 %token tADD tSUB tMUL tDIV
 %token tPO tAO
 %token tRETURN
-%token tADR
 /* &a = tADR tID, *p = tMUL tID */
+%token tADR
+/* pre post increment */
+%token tINCREMENT
 
 %token <str> tID
 %token <nb> tNB
@@ -59,15 +60,15 @@ int compteur_error;
 
 %%
 Prog :
-			{init();}
-		Fonctions
+            {init();}
+        Fonctions
 ;
 
 Fonctions :
-		/*epsilon*/
-		| Main
-		| Fonction Fonctions
-		| Main error tPV {yyerrok;}
+        /*epsilon*/
+        | Main
+        | Fonction Fonctions
+        | Main error tPV {yyerrok;}
 ;
 
 
@@ -78,69 +79,87 @@ Main :
 ;
 
 Fonction :
-		tINT tID tPO
-		    {int result = define_function($2);
-		        if(result==-1){
+        tINT tID tPO
+                {int result = define_function($2);
+                if(result==-1){
                     yyerror("try to define a function already define");
                 }
-		    }
-		Args tPF
-		Body
-		    {end_define_function();}
-			{printf("Function definition %s.\n", $2);}
-		| error tPV {yyerrok;}
+                }
+        Args tPF
+        Body
+            {end_define_function();}
+            {/*printf("Function definition %s.\n", $2);*/}
+        | error tPV {yyerrok;}
 ;
 
 Args :
-		/*epsilon*/
-		| tINT tID
-		    {add_arg_function($2,TYPE_NORMAL);}
-		ArgsN
-		| tCONST tINT tID
-		    {add_arg_function($3,TYPE_CONST);}
-		ArgsN
-		| tINT tMUL tID
-		    {add_arg_function($3,TYPE_POINTEUR);}
-		ArgsN
+        /*epsilon*/
+        | tINT tID
+            {add_arg_function($2,TYPE_NORMAL);}
+        ArgsN
+        | tCONST tINT tID
+            {add_arg_function($3,TYPE_CONST);}
+        ArgsN
+        | tINT tMUL tID
+            {add_arg_function($3,TYPE_POINTEUR);}
+        ArgsN
 ;
 
 ArgsN :
-		/*epsilon*/
-		| tVIR tINT tID
-		    {add_arg_function($3,TYPE_NORMAL);}
-		ArgsN
-		| tVIR tCONST tINT tID
-		    {add_arg_function($4,TYPE_CONST);}
-		ArgsN
-		| tVIR tINT tMUL tID
-		    {add_arg_function($4,TYPE_POINTEUR);}
-		ArgsN
+        /*epsilon*/
+        | tVIR tINT tID
+            {add_arg_function($3,TYPE_NORMAL);}
+        ArgsN
+        | tVIR tCONST tINT tID
+            {add_arg_function($4,TYPE_CONST);}
+        ArgsN
+        | tVIR tINT tMUL tID
+            {add_arg_function($4,TYPE_POINTEUR);}
+        ArgsN
 ;
 
 Body :
-		tAO
-			{$1=get_compteur_ebp();set_depth_add1();}
-		Insts
-			{set_depth_sub1();set_compteur_ebp($1);}
+        tAO
+            {$1=get_compteur_ebp();set_depth_add1();}
+        Insts
+        Return
+            {set_depth_sub1();set_compteur_ebp($1);}
         tAF
 ;
 
+Return:
+        /*epsilon*/
+        | tRETURN E tPV
+            {set_return_value_to_r0();}
+
 
 Insts :
-		/*epsilon*/
-		| Affectation tPV Insts
-        | Declaration tPV Insts
-		| Invocation tPV Insts
-		| If Insts
-		| While Insts
-		| For Insts
+        /*epsilon*/
+        | Affectation tPV
+            {tab_postadd_flush(get_depth());}
+          Insts
+        | Declaration tPV
+            {tab_postadd_flush(get_depth());}
+          Insts
+        | Invocation tPV
+            {tab_postadd_flush(get_depth());}
+          Insts
+        | If
+            {tab_postadd_flush(get_depth());}
+          Insts
+        | While
+            {tab_postadd_flush(get_depth());}
+          Insts
+        | For
+            {tab_postadd_flush(get_depth());}
+          Insts
         | Printf tPV Insts
         | Malloc tPV Insts
         | error tPV Insts{yyerrok;}
 ;
 
 Affectation :
-		tID tEQ E
+        tID tEQ E
             { int result=affect_variable($1,$3);
               if(result==-1){
                   yyerror("trying to affect a value to an undeclared variable");
@@ -159,71 +178,74 @@ Affectation :
               }else if (result==-3){
                   yyerror("trying to point with a non-pointer variable");
               }
-            printf("Affectation d'une pointeur\n");}
-
+            /*printf("Affectation d'une pointeur\n");*/}
+        | tID tINCREMENT
+            { tIDtINCREMENT_affectation($1); }
+        | tINCREMENT tID
+            { tINCREMENTtID_affectation($2); }
 ;
 
 Declaration :
-		tINT Decl1 DeclN
-		| tCONST tINT Decl1Const DeclNConst
+        tINT Decl1 DeclN
+        | tCONST tINT Decl1Const DeclNConst
 ;
 
 
 
 Decl1 :
-		tID
-			{if(declare_variable($1,TYPE_NORMAL)==-1){
+        tID
+            {if(declare_variable($1,TYPE_NORMAL)==-1){
                     yyerror("redefinition of a variable");
                 }
             }
-		| tID tEQ E
-			{if(declare_variable_affectation($1,TYPE_NORMAL)==-1){
+        | tID tEQ E
+            {if(declare_variable_affectation($1,TYPE_NORMAL)==-1){
                     yyerror("redefinition of a variable");
                 }
             }
         | tMUL tID
-            {int result = declare_variable($2,TYPE_POINTEUR);
-             if (result==-1){yyerror("redefinition of a variable");
+            {if (declare_variable($2,TYPE_POINTEUR)==-1){
+                yyerror("redefinition of a variable");
              }
             }
         | tMUL tID tEQ E
-            {if(declare_variable_affectation($2,TYPE_NORMAL)==-1){
+            {if(declare_variable_affectation($2,TYPE_POINTEUR)==-1){
                     yyerror("redefinition of a variable");
              }
             }
 ;
 
 DeclN :
-		/*epsilon*/
-		| tVIR Decl1 DeclN
+        /*epsilon*/
+        | tVIR Decl1 DeclN
 ;
 
 Decl1Const :
-		tID tEQ E
-			{if(declare_variable_affectation($1,TYPE_CONST)==-1){
+        tID tEQ E
+            {if(declare_variable_affectation($1,TYPE_CONST)==-1){
                     yyerror("redefinition of a const variable");
                 }
             }
 ;
 
 DeclNConst :
-		/*epsilon*/
-		| tVIR Decl1Const DeclNConst
+        /*epsilon*/
+        | tVIR Decl1Const DeclNConst
 ;
 
 Invocation :
-		tID tPO Vide Vide
-		    {$3 = get_ebp();$4 = get_compteur_ebp();set_depth_add1();}
-		    {before_call_function();
-		    $2 = get_asmline();}
-		Params tPF
-		    {int result = call_function($1,$2);
-		        if(result==-1){
+        tID tPO Vide Vide
+            {$3 = get_ebp();$4 = get_compteur_ebp();set_depth_add1();}
+            {before_call_function();
+            $2 = get_asmline();}
+        Params tPF
+            {int result = call_function($1,$2);
+                if(result==-1){
                     yyerror("trying to call a not define function");
                 }
-		    }
+            }
             {set_depth_sub1();set_compteur_ebp($4);set_ebp($3);}
-			{$$ = 0;}
+            {$$ = 0;}
 ;
 
 Vide :
@@ -232,13 +254,13 @@ Vide :
 ;
 
 Params :
-		/*epsilon*/
-		| E ParamsN {add_param_function();}
+        /*epsilon*/
+        | E ParamsN {add_param_function();}
 ;
 
 ParamsN :
-		/*epsilon*/
-		| tVIR E ParamsN {add_param_function();}
+        /*epsilon*/
+        | tVIR E ParamsN {add_param_function();}
 ;
 
 Printf :
@@ -252,83 +274,93 @@ Malloc :
             /* *p=malloc() */
         tMUL tID tEQ tMALLOC tPO tPF
             {int result = create_malloc($2);
-              if(result==-1){
-                  yyerror("trying to malloc to an undeclared variable");
-              }
-              else if (result==-2){
-                  yyerror("trying to malloc to a constant");
-              }else if (result==-3){
-                  yyerror("trying to malloc a non-pointer variable");
-              }
+            if(result==-1){
+                yyerror("trying to malloc to an undeclared variable");
+            }
+            else if (result==-2){
+                yyerror("trying to malloc to a constant");
+            }else if (result==-3){
+                yyerror("trying to malloc a non-pointer variable");
+            }
             }
 ;
 
 
 If :
         tIF tPO E tPF
-        	{create_jump_if();$2 = get_asmline();}
+            {create_jump_if();$2 = get_asmline();}
         Body
-        	{set_jump_fin_if($2);$2 = get_asmline();}
+            {set_jump_fin_if($2);$2 = get_asmline();}
         Else
             {set_jump_fin_else($2);}
 ;
 
 Else :
-		/*epsilon*/
-		| tELSE Body
+        /*epsilon*/
+        | tELSE Body
 ;
 
 While :
-		tWHILE
-			{$1 = get_asmline();}
-		tPO E
-			{create_jump_while();$3 = get_asmline();}
-		tPF Body
-			{set_while_jump($1,$3);}
+        tWHILE
+            {$1 = get_asmline();}
+        tPO E
+            {create_jump_while();$3 = get_asmline();}
+        tPF Body
+            {set_while_jump($1,$3);}
 ;
 
 For :
-		tFOR tPO Affectation tPV
-			{$1 = get_asmline();}
-		E tPV
-			{create_jump_while();$2 = get_asmline();}
-		Affectation tPF Body
-			{set_while_jump($1,$2);}
+        tFOR tPO Affectation tPV
+            {$1 = get_asmline();}
+        E tPV
+            {create_jump_while();$2 = get_asmline();}
+        tID tINCREMENT
+            {tIDtINCREMENT_value($9);}
+        tPF Body
+            {tab_postadd_flush(get_depth());}
+            {set_while_jump($1,$2);}
 ;
 
-/* return index in tab_var of _tmp value */
+/* in each arithmetical expressions make sure that the variables are both initialized
+* return index in tab_var of _tmp value
+*/
 E :
-		tID
-		    {$$ = tID_value($1);}
+        tID
+            {$$ = tID_value($1);}
         | tNB
             {$$ = tNB_value($1);}
         | tMUL tID
             {$$ = tMULtID_value($2);}
         | tADR tID
             {$$ = tADRtID_value($2);}
-		| tPO E tPF
-		    {$$ = $2;}
-		| Invocation
-		| E tEQEQ E
-		    {$$ = arithmetical_expression(EQEQ);}
-		| E tNEQ E
-		    {$$ = arithmetical_expression(NEQ);}
-		| E tAND E
-		    {$$ = arithmetical_expression(AND);}
-		| E tOR E
-		    {$$ = arithmetical_expression(NEQ);}
-		| E tADD E
-		    {$$ = arithmetical_expression(ADD);}
-		| E tSUB E
-		    {$$ = arithmetical_expression(SUB);}
+        | tINCREMENT tID
+            {$$ = tINCREMENTtID_value($2);}
+        | tID tINCREMENT
+            {$$ = tIDtINCREMENT_value($1);}
+        | tPO E tPF
+            {$$ = $2;}
+        | Invocation
+            {$$ = get_return_value_from_r0();}
+        | E tEQEQ E
+            {$$ = arithmetical_expression(EQEQ);}
+        | E tNEQ E
+            {$$ = arithmetical_expression(NEQ);}
+        | E tAND E
+            {$$ = arithmetical_expression(AND);}
+        | E tOR E
+            {$$ = arithmetical_expression(NEQ);}
+        | E tADD E
+            {$$ = arithmetical_expression(ADD);}
+        | E tSUB E
+            {$$ = arithmetical_expression(SUB);}
         | E tMUL E
             {$$ = arithmetical_expression(MUL);}
-		| E tDIV E
-		    {$$ = arithmetical_expression(DIV);}
-		| E tINF E
-		    {$$ = arithmetical_expression(INF);}
-		| E tSUP E
-		    {$$ = arithmetical_expression(SUP);}
+        | E tDIV E
+            {$$ = arithmetical_expression(DIV);}
+        | E tINF E
+            {$$ = arithmetical_expression(INF);}
+        | E tSUP E
+            {$$ = arithmetical_expression(SUP);}
         | E tINFEQ E
             {$$ = arithmetical_expression(INFEQ);}
         | E tSUPEQ E
@@ -383,7 +415,6 @@ int main(int argc, char**argv){
     }
     else{
         printf( BOLDBLACK "==> Creating the files\n\n" RESET );
-        print_symbol_table();
         print_asm_instructions();
         write_asm();
         printf("\n");

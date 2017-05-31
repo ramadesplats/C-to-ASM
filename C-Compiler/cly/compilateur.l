@@ -2,7 +2,7 @@
 #include "y.tab.h"
 %}
 
-/* expression reg */                
+/* expression reg */
 separateur [ \t\r\n]
 comment [/][*][^*]*[*]+([^*/][^*]*[*]+)*[/]|"//".*
 id [A-Za-z][A-Za-z0-9_]*
@@ -13,6 +13,7 @@ nb [0-9]+
 %option yylineno
 
 %%
+"\""                    { return tQUOTE; /*not use*/}
 "main"                  { return tMAIN; }
 "printf"                { return tPRINTF; }
 "malloc"                { return tMALLOC; }
@@ -23,6 +24,7 @@ nb [0-9]+
 "return"                { return tRETURN; }
 "int"                   { return tINT; }
 "const"                 { return tCONST; }
+"++"                    { return tINCREMENT; }
 "("                     { return tPO; }
 ")"                     { return tPF; }
 "{"                     { return tAO; }
@@ -35,19 +37,19 @@ nb [0-9]+
 "-"                     { return tSUB; }
 "*"                     { return tMUL; }
 "/"                     { return tDIV; }
-"!="				    { return tNEQ; }
+"!="                    { return tNEQ; }
 "&&"                    { return tAND; }
 "||"                    { return tOR; }
-">"				  	    { return tSUP; }
-"<"						{ return tINF; }
-">="				  	{ return tSUPEQ; }
-"<="					{ return tINFEQ; }
+">"                     { return tSUP; }
+"<"                     { return tINF; }
+">="                    { return tSUPEQ; }
+"<="                    { return tINFEQ; }
 "&"                     { return tADR;}
 
 
 {id}                    { yylval.str = strdup(yytext); return tID; }
-{nb}   					{ yylval.nb = atoi(yytext); return tNB; }
-{nbexp}|{nbdec} 		{ yylval.nb = (int)atof(yytext); return tNB; }
+{nb}                    { yylval.nb = atoi(yytext); return tNB; }
+{nbexp}|{nbdec}         { yylval.nb = (int)atof(yytext); return tNB; }
 
 {comment}               ;
 {separateur}            ;

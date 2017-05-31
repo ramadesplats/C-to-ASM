@@ -70,8 +70,9 @@
      tAO = 286,
      tRETURN = 287,
      tADR = 288,
-     tID = 289,
-     tNB = 290
+     tINCREMENT = 289,
+     tID = 290,
+     tNB = 291
    };
 #endif
 /* Tokens.  */
@@ -106,18 +107,19 @@
 #define tAO 286
 #define tRETURN 287
 #define tADR 288
-#define tID 289
-#define tNB 290
+#define tINCREMENT 289
+#define tID 290
+#define tNB 291
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 16 "compilateur.y"
+#line 15 "compilateur.y"
 {int nb; char *str;}
 /* Line 1529 of yacc.c.  */
-#line 121 "y.tab.h"
+#line 123 "y.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

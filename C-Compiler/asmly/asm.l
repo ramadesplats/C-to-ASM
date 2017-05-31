@@ -29,8 +29,8 @@ reg [R][0-9]+
 "PRT"                   {return tPRT;}
 
 {separateur}            ;
-{nb}   					{yylval.nb = atoi(yytext); return tNB; }
-{reg} 		            {yylval.str = strdup(yytext);return tREG; }
+{nb}                    {yylval.nb = atoi(yytext); return tNB; }
+{reg}                   {yylval.str = strdup(yytext);return tREG; }
 
 %%
 

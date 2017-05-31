@@ -28,7 +28,7 @@
 /* Define max tab */
 #define TOPMEMO 1000
 #define MAXINST 1024
-#define MAXMEMO 16
+#define MAXMEMO 100
 #define MAXREGS 32
 
 /* R31 = ebp */

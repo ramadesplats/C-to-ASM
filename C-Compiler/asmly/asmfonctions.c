@@ -44,7 +44,7 @@ void execute_asm(){
         ip = execute_line(ip);
     }
 
-    printf("\nEND execute_asm\n");
+    printf("\nEND execute_asm or MEMO insufficiant\n");
     print_regs();
     print_memo();
 }
@@ -62,7 +62,7 @@ void print_regs(){
 
 void print_memo(){
     int i;
-    for(i=0;i<MAXMEMO;i++){
+    for(i=0;i<20;i++){
         printf("MEMO[%d] = %d\n", TOPMEMO+i, memo[i]);
     }
 }
@@ -151,8 +151,6 @@ int add_inst(int type, int val1, int val2, int val3){
     inst[compteur_inst].val2 = val2;
     inst[compteur_inst].val3 = val3;
     compteur_inst ++;
-    
-    return 1;
 }
 
 
