@@ -36,8 +36,8 @@ entity fpga is
 			  RST : in STD_LOGIC;
 			  CLK : in STD_LOGIC;
            DataOUT : out  STD_LOGIC_VECTOR (15 downto 0);
-			  VGA_vga_clk : in std_logic ;
-			  VGA_vga_rst : in std_logic;
+			  --VGA_vga_clk : in std_logic ;
+			  --VGA_vga_rst : in std_logic;
 			  VGA_vga_red : out std_logic_vector(2 downto 0);
 			  VGA_vga_grn : out std_logic_vector(2 downto 0);
 			  VGA_vga_blu : out std_logic_vector(1 downto 0);
@@ -48,6 +48,15 @@ entity fpga is
 end fpga;
 
 architecture Behavioral of fpga is
+	-- div
+	COMPONENT div
+	PORT (
+		  CLK : in  STD_LOGIC;
+		  RST : in  STD_LOGIC;
+		  CLK_2 : out  STD_LOGIC;
+		  CLK_4 : out  STD_LOGIC);
+	END COMPONENT;
+
 	 -- ip
 	 COMPONENT ip
     PORT(
@@ -171,6 +180,16 @@ architecture Behavioral of fpga is
         );
     END COMPONENT;
 	 
+	 -- component multiplexeur UAL
+	 COMPONENT muxual
+    Port ( OP : in  STD_LOGIC_VECTOR (7 downto 0);
+           B : in  STD_LOGIC_VECTOR (15 downto 0);
+           S : in  STD_LOGIC_VECTOR (15 downto 0);
+			  N : in  std_logic;
+			  Z : in  std_logic;
+           DataOUT : out  STD_LOGIC_VECTOR (15 downto 0));
+	 END COMPONENT;
+	 
 	 -- Component Logic Controller Mémoire des données
 	 COMPONENT lcmem
     PORT(
@@ -215,13 +234,6 @@ architecture Behavioral of fpga is
 	  mem_dw : in std_logic_vector(15 downto 0));
 	end component;
 	 
-	 -- component multiplexeur UAL
-	 COMPONENT muxual
-    Port ( OP : in  STD_LOGIC_VECTOR (7 downto 0);
-           B : in  STD_LOGIC_VECTOR (15 downto 0);
-           S : in  STD_LOGIC_VECTOR (15 downto 0);
-           DataOUT : out  STD_LOGIC_VECTOR (15 downto 0));
-	 END COMPONENT;
 	 
 	 -- Component Logic Controller a la fin
 	 COMPONENT lc
@@ -337,6 +349,8 @@ architecture Behavioral of fpga is
 	signal MUXUAL_OP : std_logic_vector(7 downto 0) := (others => '0');
    signal MUXUAL_B : std_logic_vector(15 downto 0) := (others => '0');
    signal MUXUAL_S : std_logic_vector(15 downto 0) := (others => '0');
+	signal MUXUAL_N : std_logic :='0';
+	signal MUXUAL_Z : std_logic :='0';
    signal MUXUAL_DataOUT : std_logic_vector(15 downto 0) := (others => '0');
 	
 	--EX/Mem
@@ -361,8 +375,8 @@ architecture Behavioral of fpga is
 	signal RAM16_do : std_logic_vector(15 downto 0):= (others => '0');
 	
 	-- VGA
-	--signal VGA_vga_clk : std_logic := '0';
-	--signal VGA_vga_rst : std_logic := '0';
+	signal VGA_vga_clk : std_logic := '0';
+	signal VGA_vga_rst : std_logic := '0';
 --	signal VGA_vga_red : std_logic_vector(2 downto 0):= (others => '0');
 --	signal VGA_vga_grn : std_logic_vector(2 downto 0):= (others => '0');
 --	signal VGA_vga_blu : std_logic_vector(1 downto 0):= (others => '0');
@@ -396,10 +410,19 @@ architecture Behavioral of fpga is
    signal MUXDATA_DataOUT : STD_LOGIC_VECTOR (15 downto 0) := (others => '0');
 	
    -- Clock period definitions
-	signal notRST : std_logic := '0';
+	signal CLK_2 : std_logic := '0';
+	signal CLK_4 : std_logic := '0';
    constant CLK_period : time := 10 ns;
  
 BEGIN
+	-- div frequence
+	divfreq: div PORT MAP(
+		  CLK => CLK,
+		  RST => RST,
+		  CLK_2 => CLK_2,
+		  CLK_4 => CLK_4
+	);
+
 	-- ip
 	fpga_ip: ip PORT MAP (
 		 DIN => IP_DIN,
@@ -578,12 +601,16 @@ BEGIN
 	MUXUAL_OP <= DIEX_OPout;
 	MUXUAL_B <= DIEX_Bout;
 	MUXUAL_S <= UAL_S;
+	MUXUAL_N <= UAL_N;
+	MUXUAL_Z <= UAL_Z;
 	
 	-- muxual
 	muxu: muxual PORT MAP (
 		OP => MUXUAL_OP,
 		B => MUXUAL_B,
 		S => MUXUAL_S,
+		N => MUXUAL_N,
+		Z => MUXUAL_Z,
 		DataOUT => MUXUAL_DataOUT
 	);
 	
@@ -638,15 +665,17 @@ BEGIN
 	VGA_mem_a <= EXMEM_Bout (9 downto 0) & "0";--*2
 	VGA_mem_we <= LCMEM_out;
 	 
-	notRST <= not(RST);--VGA_vga_rst,sys_reset
+	VGA_vga_clk <= CLK_4;
+	VGA_vga_rst <= not(RST);--VGA_vga_rst,sys_reset
+	
 	-- VGA
 	vga: vga_top PORT MAP(
 	  -- System
 	  sys_clk => CLK,
-	  sys_rst => notRST,
+	  sys_rst => VGA_vga_rst,
 	  -- VGA
 	  vga_clk => VGA_vga_clk,
-	  vga_rst => notRST, 
+	  vga_rst => VGA_vga_rst, 
 	  vga_red => VGA_vga_red,
 	  vga_grn => VGA_vga_grn,
 	  vga_blu => VGA_vga_blu,

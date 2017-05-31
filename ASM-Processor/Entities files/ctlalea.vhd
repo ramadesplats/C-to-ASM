@@ -67,19 +67,23 @@ begin
 
 lire <= '1' when ((lidiOPin = x"01") or (lidiOPin = x"02") or (lidiOPin = x"03") or (lidiOPin = x"04")
 						or (lidiOPin = x"05") or (lidiOPin = x"07") or (lidiOPin = x"08") 
-						or (lidiOPin = x"0F") or (lidiOPin = x"10"))
+						or (lidiOPin = x"0F") or (lidiOPin = x"10")
+						or (lidiOPin = x"09") or (lidiOPin = x"0A") or (lidiOPin = x"0B") or (lidiOPin = x"0C") or (lidiOPin = x"0D"))
 		  else '0';
 
 ecrire_diex <= '1' when ((diexOPin = x"01") or (diexOPin = x"02") or (diexOPin = x"03") or (diexOPin = x"04")
-						or (diexOPin = x"05") or (diexOPin = x"06") or (diexOPin = x"07"))
+						or (diexOPin = x"05") or (diexOPin = x"06") or (diexOPin = x"07")
+						or (diexOPin = x"09") or (diexOPin = x"0A") or (diexOPin = x"0B") or (diexOPin = x"0C") or (diexOPin = x"0D"))
 					else '0';
 
 ecrire_exmem <= '1' when ((exmemOPin = x"01") or (exmemOPin = x"02") or (exmemOPin = x"03") or (exmemOPin = x"04")
-						or (exmemOPin = x"05") or (exmemOPin = x"06") or (exmemOPin = x"07"))
+						or (exmemOPin = x"05") or (exmemOPin = x"06") or (exmemOPin = x"07")
+						or (exmemOPin = x"09") or (exmemOPin = x"0A") or (exmemOPin = x"0B") or (exmemOPin = x"0C") or (exmemOPin = x"0D"))
 					else '0';
 
 ecrire_memre <= '1' when ((memreOPin = x"01") or (memreOPin = x"02") or (memreOPin = x"03") or (memreOPin = x"04")
-						or (memreOPin = x"05") or (memreOPin = x"06") or (memreOPin = x"07"))
+						or (memreOPin = x"05") or (memreOPin = x"06") or (memreOPin = x"07")
+						or (memreOPin = x"09") or (memreOPin = x"0A") or (memreOPin = x"0B") or (memreOPin = x"0C") or (memreOPin = x"0D"))
 					else '0';
 
 jump <= '1' when ((diexOPin = x"0E" and CLK='0') 

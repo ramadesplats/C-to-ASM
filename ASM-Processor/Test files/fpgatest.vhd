@@ -46,8 +46,8 @@ ARCHITECTURE behavior OF fpgatest IS
 			RST : in STD_LOGIC;
          CLK : IN  std_logic;
          DataOUT : OUT  std_logic_vector(15 downto 0);
-			VGA_vga_clk : in std_logic ;
-			VGA_vga_rst : in std_logic;
+			--VGA_vga_clk : in std_logic ;
+			--VGA_vga_rst : in std_logic;
 			VGA_vga_red : out std_logic_vector(2 downto 0);
 			VGA_vga_grn : out std_logic_vector(2 downto 0);
 			VGA_vga_blu : out std_logic_vector(1 downto 0);
@@ -80,8 +80,6 @@ BEGIN
 			 RST => RST,
           CLK => CLK,
           DataOUT => DataOUT,
-			 VGA_vga_clk => CLK,
-			 VGA_vga_rst => RST,
 			 VGA_vga_red => VGA_vga_red,
 			 VGA_vga_grn => VGA_vga_grn,
 			 VGA_vga_blu => VGA_vga_blu,

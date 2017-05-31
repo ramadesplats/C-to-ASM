@@ -64,6 +64,21 @@ begin
 		-- on passe Ain=offset, QA=Ri, on permute QA et A
 		Aout <= QA;
 		DataOUT <= Ain;
+	when x"09" => --EQU
+		Aout <= Ain;
+		DataOUT <= QA;
+	when x"0A" => --INF
+		Aout <= Ain;
+		DataOUT <= QA;
+	when x"0B" => --INFE
+		Aout <= Ain;
+		DataOUT <= QA;
+	when x"0C" => --SUP
+		Aout <= Ain;
+		DataOUT <= QA;
+	when x"0D" => --SUPE
+		Aout <= Ain;
+		DataOUT <= QA;
 	when x"0F" => --JUMPC
 		Aout <= Ain;
 		DataOUT <= QA;

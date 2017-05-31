@@ -55,6 +55,16 @@ begin
 		LC_OUT <= '1';
 	when x"07" => --LOAD
 		LC_OUT <= '1';
+	when x"09" => --EQU
+		LC_OUT <= '1';
+	when x"0A" => --INF
+		LC_OUT <= '1';
+	when x"0B" => --INFE
+		LC_OUT <= '1';
+	when x"0C" => --SUP
+		LC_OUT <= '1';
+	when x"0D" => --SUPE
+		LC_OUT <= '1';
 	when others => 
 		LC_OUT <= '0';
 	end case;

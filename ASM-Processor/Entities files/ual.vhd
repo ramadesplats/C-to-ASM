@@ -43,7 +43,7 @@ entity ual is
 end ual;
 
 architecture Behavioral of ual is
-	signal result : STD_LOGIC_VECTOR(31 downto 0);
+	signal result : STD_LOGIC_VECTOR(31 downto 0):= (others=>'0');
 	constant zero16b : STD_LOGIC_VECTOR(16 downto 0) := (others=>'0');
 	constant max16b : STD_LOGIC_VECTOR(16 downto 0) := (15 downto 0 => '1', others=> '0');
 begin
@@ -58,7 +58,7 @@ begin
 	when "011" => --sub 3
 		result <= (x"0000" & A) -(x"0000" & B);
 	when others => --000
-		--result <= (others=>'0');
+		result <= (others=>'0');
 	end case;
 end process;
 

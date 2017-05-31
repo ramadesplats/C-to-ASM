@@ -53,6 +53,16 @@ begin
 		LC_OUT <= "001";
 	when x"08" => --STORE, offset+R31
 		LC_OUT <= "001";
+	when x"09" => --EQU, Rj - Rk
+		LC_OUT <= "011";
+	when x"0A" => --INF, Rj - Rk
+		LC_OUT <= "011";
+	when x"0B" => --INFE, Rj - Rk
+		LC_OUT <= "011";
+	when x"0C" => --SUP, Rj - Rk
+		LC_OUT <= "011";
+	when x"0D" => --SUPE, Rj - Rk
+		LC_OUT <= "011";
 	when others => 
 		LC_OUT <= "000";
 	end case;
