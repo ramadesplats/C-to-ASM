@@ -8,7 +8,7 @@ Langage C to ASM Compiler (Yacc/Lex) and Processor (VHDL)
 **Files**
 - `C-Compiler/`
   - `C-Compiler/cly` C compiler to ASM
-  - `C-Compiler/asmly` simulate ASM execution 
+  - `C-Compiler/asmly` simulate ASM execution
   - `C-Compiler/asm2oply` generate OP code from ASM code
   - `C-Compiler/test` some C test, if you want to compile your own customized C, you can have a look on some of our examples
 - `ASM-Processor/`
@@ -105,7 +105,7 @@ Langage C to ASM Compiler (Yacc/Lex) and Processor (VHDL)
 - Registres
   - Synchronous on falling_edge(CLK)
     - Guarantee that each pipeline is done in one CLK tick
-  - 32 syncronous registers of 16 bits 
+  - 32 syncronous registers of 16 bits
   - Simultaneous writing and reading is allowed but writing is done first
 - UAL
   - Combinatory mode
@@ -124,19 +124,19 @@ Langage C to ASM Compiler (Yacc/Lex) and Processor (VHDL)
   - Choose between a signal given by an entity or the value spread by the previous pipeline depending on the OP code
 
 ### Possible improvement
-- Operating frequency
+- [ ] Operating frequency
   -  Find the critical path in the code and try to optimize the operating frequency
-- VGA
+- [ ] VGA
   - Should allow printing on VGA screen but isn't working at the moment
-- Hazard detection
+- [ ] Hazard detection
   - Blurry separation of the diffrent READ cases : e.g. READ x r 0 / READ x r r / READ x 0 r
   - As writing and reading is allowed we should be able to reduce waiting time when detecting a data hazard
-- Not yet implemented operations: EQU, INF, INFE, SUP, SUPE
+- [x] Not yet implemented operations: EQU, INF, INFE, SUP, SUPE
   - Possible improvements: in the UAL, do Rj-Rk, then affect Ri given the following rules
     - EQU = Z
     - INF = N
     - INFE = N or Z
     - SUP = not(N or Z)
     - SUPE = not(N)
-- Memory access with bus connector 
+- [ ] Memory access with bus connector
   - Eventually, we coud use a in-between entity (`cores/conbus1x4.v`) to mul pour multiplex memory access. Depending on the different adresses, we can accessto the RAM, VGA Core Video, Peripherals and Timers.
